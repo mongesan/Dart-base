@@ -3,8 +3,8 @@ import "dart:io";
 import 'dart:async';
 
 class Timer {
-  bool ifcounting = false;
-  int time = 0;
+  bool ifCounting = false;
+  int elapsedTime = 0;
   String Message =
       "To start/restart stopwatch, type 'start' or 's'\nTo stop, type 'stop' or 'break'\nTo reset, type 'reset' or 'r'";
   void initialize() {
@@ -13,24 +13,21 @@ class Timer {
     print('----------');
   }
 
+  time_to_mmss(time) {
+    String sec = (time % 60).toString().padLeft(2, '0');
+    String min = (time ~/ 60).toString().padLeft(2, '0');
+    return ('$min:$sec');
+  }
+
   Future<void> count() async {
-    while (ifcounting) {
+    while (ifCounting) {
+      print(time_to_mmss(elapsedTime));
       await Future.delayed(Duration(seconds: 1));
-      time += 1;
-      print(time);
+      elapsedTime += 1;
     }
   }
 }
 
-// String sec = (time % 60).toString();
-//       String min = (time ~/ 60).toString();
-//       if (sec.length == 1) {
-//         sec = '0' + sec;
-//       }
-//       if (min.length == 1) {
-//         min = '0' + min;
-//       }
-//       print("$min:$sec");
 // Future<String?> getUserInput(String message) async {
 //   print(message);
 //   return stdin.readLineSync();
@@ -39,9 +36,15 @@ class Timer {
 void main() async {
   Stream<String> readline() =>
       stdin.transform(utf8.decoder).transform(const LineSplitter());
-  // readline().listen(getstdin);
+
+  Future<String?> getUserInput(String message) async {
+    print(message);
+    return stdin.readLineSync();
+  }
+
+  readline().listen(getstdin);
   var timer = Timer();
   timer.initialize();
-  timer.ifcounting = true;
+  timer.ifCounting = true;
   timer.count();
 }
