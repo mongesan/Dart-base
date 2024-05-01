@@ -17,6 +17,7 @@ class Timer {
     while (ifcounting) {
       await Future.delayed(Duration(seconds: 1));
       time += 1;
+      print(time);
     }
   }
 }
@@ -38,7 +39,9 @@ class Timer {
 void main() async {
   Stream<String> readline() =>
       stdin.transform(utf8.decoder).transform(const LineSplitter());
-  readline().listen(getstdin);
+  // readline().listen(getstdin);
   var timer = Timer();
   timer.initialize();
+  timer.ifcounting = true;
+  timer.count();
 }
