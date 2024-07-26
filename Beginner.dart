@@ -2,56 +2,85 @@ import "dart:convert";
 import "dart:io";
 import 'dart:async';
 
-bool timerMoving = true;
-int timerSaved = 0;
-Future<String?> getUserInput(String message) async {
-  print(message);
-  return stdin.readLineSync();
-}
+class Timer {
+  bool isCounting = false;
+  int elapsedTime = 0;
 
-Future<void> count(int timerInitial) async {
-  int time = timerInitial;
-  timerMoving = true;
-  while (timerMoving) {
-    await Future.delayed(Duration(seconds: 1));
-    time += 1;
-    // time in second
-    String sec = (time % 60).toString();
-    String min = (time ~/ 60).toString();
-    if (sec.length == 1) {
-      sec = '0' + sec;
+  void start() {
+    if (isCounting) {
+      print('Timer already started');
+    } else {
+      isCounting = true;
+      count();
+      print('TIMER START!\n----------');
     }
-    if (min.length == 1) {
-      min = '0' + min;
-    }
-    print("$min:$sec");
   }
-  timerSaved = time;
-}
 
-Stream<String> readline() =>
-    stdin.transform(utf8.decoder).transform(const LineSplitter());
+  void stop() {
+    if (isCounting) {
+      isCounting = false;
+      print('TIMER STOP!\n----------');
+    } else {
+      print('Timer already stopped');
+    }
+  }
 
-String Message =
-    "To start/restart stopwatch, type 'start' or 's'\nTo stop, type 'stop' or 'break'\nTo reset, type 'reset' or 'r'";
-void main() async {
-  print('----------\nSTOP WATCH\n----------');
-  print(Message);
-  readline().listen(getstdin);
-}
-
-void getstdin(String line) {
-  if (line == 'r' || line == 'reset' || line == "RESET") {
+  void reset() {
+    isCounting = false;
+    elapsedTime = 0;
     print("TIMER RESET!\n---------");
-    timerSaved = 0;
-    timerMoving = false;
-  } else if (line == 's' || line == 'start' || line == "START") {
-    count(timerSaved);
-  } else if (line == 'stop' || line == "break") {
-    print('TIMER STOPPED!\n----------');
-    timerMoving = false;
-    print(Message);
-  } else {
-    print(Message);
   }
+
+  Future<void> count() async {
+    while (isCounting) {
+      print(formatTime(elapsedTime));
+      await Future.delayed(Duration(seconds: 1));
+      elapsedTime += 1;
+    }
+  }
+
+  String formatTime(int time) {
+    String sec = (time % 60).toString().padLeft(2, '0');
+    String min = (time ~/ 60).toString().padLeft(2, '0');
+    return ('$min:$sec');
+  }
+}
+
+class TimerUI {
+  final Timer timer = Timer();
+  final String initialMessage =
+      "To start stopwatch, type 'start' or 's'\nTo stop, type 'stop' or 'break'\nTo reset, type 'reset' or 'r'";
+
+  void initialize() {
+    print('----------\nSTOP WATCH\n----------');
+    print(initialMessage);
+    print('----------');
+  }
+
+  Future<void> getStdin() async {
+    await stdin
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .forEach((line) {
+      handleInput(line);
+    });
+  }
+
+  void handleInput(String line) {
+    if (line == 's' || line == 'start' || line == "START") {
+      timer.start();
+    } else if (line == 'x' || line == 'stop' || line == "break") {
+      timer.stop();
+    } else if (line == 'r' || line == 'reset' || line == "RESET") {
+      timer.reset();
+    } else {
+      print('Invalid command');
+    }
+  }
+}
+
+void main() async {
+  var timerUI = TimerUI();
+  timerUI.initialize();
+  timerUI.getStdin();
 }
